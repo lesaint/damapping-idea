@@ -1,5 +1,9 @@
 *.class
 
+# IDEA files and directories
+out
+.idea
+
 # Package Files #
 *.jar
 *.war
