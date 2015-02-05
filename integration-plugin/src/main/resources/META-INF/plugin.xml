@@ -1,13 +1,34 @@
 <idea-plugin version="2">
   <id>fr.javatronic.damapping.intellij.plugin.integration</id>
   <name>DAMapping integration plugin</name>
-  <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">DAMapping</vendor>
+  <!--plugin version is independant of other DAMapping components, it may have to be bound to supported IDEA version-->
+  <version>0.1.0</version>
+  <!--<vendor email="support@yourcompany.com" url="http://damapping.javatronic.fr">DAMapping</vendor>-->
+  <vendor url="https://github.com/lesaint/damapping-idea" />
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <small>most HTML tags may be used</small>
-      ]]></description>
+      <p>IntelliJ IDEA 14 <strong>BETA</strong> Integration plugin for the DAMapping stack.</p>
+      <p>
+        Supports:
+        <ul>
+          <li>IntelliJ IDEA: 14.0.3</li>
+          <li>DAMapping framework: 0.6.0</li>
+        </ul>
+      </p>
+      ]]>
+  </description>
+
+  <change-notes><![CDATA[
+      <p>
+        <strong>0.1.0 - [date]</strong>: first public beta version for IDEA 14<br/>
+        <ul>
+          <li>supports DAMapping framework 0.6.0</li>
+          <li>provides fluent integration of generated types in the editor (no need to build and actually generate source files in target directory)</li>
+        </ul>
+      </p>
+      ]]>
+  </change-notes>
+
   <category>Tools Integration</category>
   <idea-version since-build="139.1117" /><!--IDEA 14.0.3-->
 
@@ -49,11 +70,7 @@
         implementation="fr.javatronic.damapping.intellij.plugin.integration.provider.DAMappingInspectionProvider" />
     <java.shortNamesCache
         implementation="fr.javatronic.damapping.intellij.plugin.integration.cache.DAMappingPsiShortNamesCache" />
+    <gotoClassContributor
+        implementation="fr.javatronic.damapping.intellij.plugin.integration.contributor.GeneratedClassGoToContributor" />
   </extensions>
-
-  <change-notes><![CDATA[
-      Add change notes here.<br>
-      <small>most HTML tags may be used</small>
-      ]]>
-  </change-notes>
 </idea-plugin>
