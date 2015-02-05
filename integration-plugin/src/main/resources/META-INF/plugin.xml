@@ -9,7 +9,7 @@
       <small>most HTML tags may be used</small>
       ]]></description>
   <category>Tools Integration</category>
-  <idea-version since-build="123.72" />
+  <idea-version since-build="139.1117" /><!--IDEA 14.0.3-->
 
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.platform</depends>
