@@ -27,6 +27,12 @@ import fr.javatronic.damapping.processor.model.DAParameter;
 import fr.javatronic.damapping.processor.model.DASourceClass;
 import fr.javatronic.damapping.processor.model.DAType;
 import fr.javatronic.damapping.processor.model.factory.DANameFactory;
+import fr.javatronic.damapping.processor.model.impl.DAAnnotationImpl;
+import fr.javatronic.damapping.processor.model.impl.DAEnumValueImpl;
+import fr.javatronic.damapping.processor.model.impl.DAInterfaceImpl;
+import fr.javatronic.damapping.processor.model.impl.DAMethodImpl;
+import fr.javatronic.damapping.processor.model.impl.DAParameterImpl;
+import fr.javatronic.damapping.processor.model.impl.DASourceClassImpl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -86,13 +92,12 @@ public class PsiParsingServiceImpl implements PsiParsingService {
     checkArgument(!psiClass.isInterface(), "Interface annoted with @Mapper is not supported");
 
     try {
-      DASourceClass.Builder builder = daSourceBuilder(psiClass, daTypeExtractor.forClassOrEnum(psiClass));
+      DASourceClassImpl.Builder builder = daSourceBuilder(psiClass, daTypeExtractor.forClassOrEnum(psiClass));
 
       PsiImportList psiImportList = extractPsiImportList(psiClass);
       DAName packageName = daNameExtractor.extractPackageName(psiClass);
       PsiContext psiContext = new PsiContext(psiImportList, packageName);
       return builder
-          .withPackageName(psiContext.getPackageName())
           .withAnnotations(extractAnnotations(psiClass.getModifierList(), psiContext))
           .withModifiers(daModifierExtractor.extractModifiers(psiClass))
           .withInterfaces(extractInterfaces(psiClass, psiContext))
@@ -105,12 +110,12 @@ public class PsiParsingServiceImpl implements PsiParsingService {
     }
   }
 
-  private static DASourceClass.Builder daSourceBuilder(PsiClass psiClass, DAType daType) {
+  private static DASourceClassImpl.Builder daSourceBuilder(PsiClass psiClass, DAType daType) {
     if (psiClass.isEnum()) {
-      return DASourceClass.enumBuilder(daType, extractEnumValues(psiClass));
+      return DASourceClassImpl.enumBuilder(daType, extractEnumValues(psiClass));
     }
     else {
-      return DASourceClass.classbuilder(daType);
+      return DASourceClassImpl.classbuilder(daType);
     }
   }
 
@@ -119,7 +124,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
         .filter(PsiEnumConstant.class)
         .transform(PsiEnumConstantDAEnumValue.INSTANCE)
         .filter(Predicates.notNull())
-        .toImmutableList();
+        .toList();
   }
 
   private List<DAAnnotation> extractAnnotations(@Nullable PsiModifierList modifierList,
@@ -134,14 +139,14 @@ public class PsiParsingServiceImpl implements PsiParsingService {
           @Nullable
           @Override
           public DAAnnotation apply(@Nullable PsiAnnotation psiAnnotation) {
-            DAAnnotation res = new DAAnnotation(
+            DAAnnotation res = new DAAnnotationImpl(
                 daTypeExtractor.forAnnotation(psiAnnotation, psiContext)
             );
             return res;
           }
         }
         )
-        .toImmutableList();
+        .toList();
   }
 
   private List<DAInterface> extractInterfaces(final PsiClass psiClass, @Nonnull final PsiContext psiContext) {
@@ -152,11 +157,11 @@ public class PsiParsingServiceImpl implements PsiParsingService {
           .transform(new Function<PsiJavaCodeReferenceElement, DAInterface>() {
             @Override
             public DAInterface apply(@Nullable PsiJavaCodeReferenceElement referenceElement) {
-              return new DAInterface(daTypeExtractor.forInterface(referenceElement, psiContext));
+              return new DAInterfaceImpl(daTypeExtractor.forInterface(referenceElement, psiContext));
             }
           }
           )
-          .toImmutableList();
+          .toList();
     }
     return Collections.emptyList();
   }
@@ -188,14 +193,14 @@ public class PsiParsingServiceImpl implements PsiParsingService {
                 .build();
           }
 
-          private DAMethod.Builder daMethodBuilder(PsiMethod psiMethod) {
+          private DAMethodImpl.Builder daMethodBuilder(PsiMethod psiMethod) {
             if (psiMethod.isConstructor()) {
-              return DAMethod.constructorBuilder();
+              return DAMethodImpl.constructorBuilder();
             }
-            return DAMethod.methodBuilder();
+            return DAMethodImpl.methodBuilder();
           }
         }
-        ).toImmutableList();
+        ).toList();
     if (!Iterables.any(daMethods, DAMethodConstructor.INSTANCE)) {
       return ImmutableList.copyOf(
           Iterables.concat(Collections.singletonList(instanceDefaultConstructor(psiClass)), daMethods)
@@ -205,7 +210,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
   }
 
   private DAMethod instanceDefaultConstructor(PsiClass psiClass) {
-    return DAMethod.constructorBuilder()
+    return DAMethodImpl.constructorBuilder()
                    .withName(DANameFactory.from(psiClass.getName()))
                    .withModifiers(Collections.singleton(DAModifier.PUBLIC))
                    .withReturnType(daTypeExtractor.forClassOrEnum(psiClass))
@@ -224,7 +229,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
           @Nullable
           @Override
           public DAParameter apply(@Nullable PsiParameter psiParameter) {
-            return DAParameter
+            return DAParameterImpl
                 .builder(
                     DANameFactory.from(psiParameter.getName()), daTypeExtractor.forParameter(psiParameter, psiContext)
                 ).withModifiers(daModifierExtractor.extractModifiers(psiParameter))
@@ -232,7 +237,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
                 .build();
           }
         }
-        ).toImmutableList();
+        ).toList();
   }
 
   private static enum PsiEnumConstantDAEnumValue implements Function<PsiEnumConstant, DAEnumValue> {
@@ -244,7 +249,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
       if (psiEnumConstant == null) {
         return null;
       }
-      return new DAEnumValue(psiEnumConstant.getName());
+      return new DAEnumValueImpl(psiEnumConstant.getName());
     }
   }
 

@@ -21,6 +21,7 @@ import fr.javatronic.damapping.processor.model.DAName;
 import fr.javatronic.damapping.processor.model.DAType;
 import fr.javatronic.damapping.processor.model.DATypeKind;
 import fr.javatronic.damapping.processor.model.factory.DANameFactory;
+import fr.javatronic.damapping.processor.model.impl.DATypeImpl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,7 +58,7 @@ public class DATypeExtractorImpl implements DATypeExtractor {
   @Override
   @Nonnull
   public DAType forClassOrEnum(PsiClass psiClass) {
-    return DAType.builder(DATypeKind.DECLARED, DANameFactory.from(psiClass.getName()))
+    return DATypeImpl.typeBuilder(DATypeKind.DECLARED, DANameFactory.from(psiClass.getName()))
                  .withQualifiedName(daNameExtractor.qualifiedName(psiClass))
                  .withTypeArgs(extractTypeArgs(psiClass))
                  .withSuperBound(extractSuperBound(psiClass))
@@ -93,7 +94,7 @@ public class DATypeExtractorImpl implements DATypeExtractor {
   }
 
   private DAType extractDAType(@Nonnull PsiTypeElement typeElement, PsiContext psiContext) {
-    return DAType.builder(extractDATypeKind(typeElement), daNameExtractor.simpleName(typeElement))
+    return DATypeImpl.typeBuilder(extractDATypeKind(typeElement), daNameExtractor.simpleName(typeElement))
         .withQualifiedName(daNameExtractor.qualifiedName(typeElement, psiContext))
         .withTypeArgs(extractTypeArgs(typeElement, psiContext))
         .withExtendsBound(extractExtendsBound(typeElement, psiContext))
@@ -137,15 +138,16 @@ public class DATypeExtractorImpl implements DATypeExtractor {
             return extractDAType(psiTypeElement, psiContext);
           }
         }
-        ).toImmutableList();
+        ).toList();
     return daTypes;
   }
 
   @Override
   @Nonnull
   public DAType forInterface(PsiJavaCodeReferenceElement referenceElement, PsiContext psiContext) {
-    return DAType.builder(
-        extractDATypeKind(referenceElement), daNameExtractor.simpleName(referenceElement))
+    return DATypeImpl.typeBuilder(
+        extractDATypeKind(referenceElement), daNameExtractor.simpleName(referenceElement)
+    )
                  .withQualifiedName(daNameExtractor.interfaceQualifiedName(referenceElement, psiContext))
                  .withTypeArgs(extractTypeArgs(referenceElement, psiContext))
                  .build();
@@ -161,16 +163,13 @@ public class DATypeExtractorImpl implements DATypeExtractor {
             return extractDAType(psiTypeElement, psiContext);
           }
         }
-        ).toImmutableList();
+        ).toList();
     return daTypes;
   }
 
   private DATypeKind extractDATypeKind(PsiTypeElement psiTypeElement) {
     if (PsiTypeElementUtil.isWildcard(psiTypeElement)) {
       return DATypeKind.WILDCARD;
-    }
-    if (PsiTypeElementUtil.isArray(psiTypeElement)) {
-      return DATypeKind.ARRAY;
     }
     return DATypeKind.DECLARED;
   }
@@ -207,7 +206,7 @@ public class DATypeExtractorImpl implements DATypeExtractor {
     if (qualifiedName.equals(simpleName)) {
       qualifiedName = daNameExtractor.qualifiedName(simpleName.getName(), psiContext);
     }
-    return DAType.builder(DATypeKind.DECLARED, simpleName)
+    return DATypeImpl.typeBuilder(DATypeKind.DECLARED, simpleName)
                  .withQualifiedName(qualifiedName)
                  .build();
   }

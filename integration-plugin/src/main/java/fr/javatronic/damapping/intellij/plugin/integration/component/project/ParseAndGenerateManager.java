@@ -32,6 +32,7 @@ import fr.javatronic.damapping.processor.validator.ValidationError;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +53,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.ParameterizedCachedValue;
 import com.intellij.psi.util.ParameterizedCachedValueProvider;
-import org.codehaus.groovy.runtime.StringBufferWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -182,15 +182,15 @@ public class ParseAndGenerateManager implements ProjectComponent {
 
     @Override
     public void generateFile(@Nonnull GeneratedFileDescriptor descriptor) throws IOException {
-      StringBuffer buffer = new StringBuffer();
-      descriptor.getSourceGenerator().writeFile(new BufferedWriter(new StringBufferWriter(buffer)));
+      StringWriter writer = new StringWriter();
+      descriptor.getSourceGenerator().writeFile(new BufferedWriter(writer));
       // ((PsiJavaFile) PsiFileFactory.getInstance(project).createFileFromText(sourceGenerator.fileName(context),
       // JavaFileType.INSTANCE, buffer.toString(), LocalTimeCounter     .currentTime(), false,
       // false)).getClasses()[0].getImplementsListTypes()
       PsiJavaFile psiJavaFile = (PsiJavaFile) PsiFileFactory.getInstance(project)
                                                             .createFileFromText(
                                                                 descriptor.getType().getSimpleName().getName(),
-                                                                JavaFileType.INSTANCE, buffer.toString()
+                                                                JavaFileType.INSTANCE, writer.getBuffer().toString()
                                                             );
       this.generatedPsiClass = psiJavaFile.getClasses()[0];
     }

@@ -74,7 +74,7 @@ public class DAModifierExtractorImpl implements DAModifierExtractor {
     return from(Arrays.asList(modifierList.getChildren()))
         .filter(PsiKeyword.class)
         .transform(PsiKeywordToDAModifier.INSTANCE)
-        .toImmutableSet();
+        .toSet();
   }
 
   private static enum PsiKeywordToDAModifier implements Function<PsiKeyword, DAModifier> {

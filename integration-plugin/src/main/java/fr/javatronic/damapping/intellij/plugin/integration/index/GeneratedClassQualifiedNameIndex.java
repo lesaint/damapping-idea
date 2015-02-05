@@ -64,7 +64,7 @@ public class GeneratedClassQualifiedNameIndex extends AbstractPsiClassIndex {
     List<PsiClass> generatedPsiClasses = parseAndGenerateManager
         .getGeneratedPsiClasses(psiClass, GlobalSearchScope.allScope(psiClass.getProject()));
 
-    return from(generatedPsiClasses).transform(PsiClassToQualifiedName.INSTANCE).toImmutableSet();
+    return from(generatedPsiClasses).transform(PsiClassToQualifiedName.INSTANCE).toSet();
   }
 
   private static enum PsiClassToQualifiedName implements Function<PsiClass, String> {

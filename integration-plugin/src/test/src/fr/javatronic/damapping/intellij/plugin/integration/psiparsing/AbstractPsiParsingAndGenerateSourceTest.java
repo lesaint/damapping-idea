@@ -31,6 +31,7 @@ import fr.javatronic.damapping.processor.validator.DASourceClassValidatorImpl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Lists;
@@ -39,7 +40,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
-import org.codehaus.groovy.runtime.StringBufferWriter;
 
 /**
  * AbstractPsiParsingAndGenerateSourceTest -
@@ -74,8 +74,8 @@ public abstract class AbstractPsiParsingAndGenerateSourceTest extends AbstractIn
           new SourceWriterDelegate() {
             @Override
             public void generateFile(@Nonnull GeneratedFileDescriptor descriptor) throws IOException {
-                StringBuffer buffer = new StringBuffer();
-                descriptor.getSourceGenerator().writeFile(new BufferedWriter(new StringBufferWriter(buffer)));
+              StringWriter writer = new StringWriter();
+              descriptor.getSourceGenerator().writeFile(new BufferedWriter(writer));
 
                 // sourceGenerator.fileName(context) actually returns the qualifiedName of the class...
                 String qualifiedName = descriptor.getType().getSimpleName().getName();
@@ -83,7 +83,7 @@ public abstract class AbstractPsiParsingAndGenerateSourceTest extends AbstractIn
 
                 String expected = new String(FileUtil.loadFileText(new File(tgtFileDirPath, tgtFileName), "UTF-8"));
 
-                assertEquals("Source does not match for " + qualifiedName, expected, buffer.toString());
+                assertEquals("Source does not match for " + qualifiedName, expected, writer.getBuffer().toString());
           }
           }
       );

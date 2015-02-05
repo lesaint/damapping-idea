@@ -64,7 +64,7 @@ public class GeneratedClassSimpleNameIndex extends AbstractPsiClassIndex {
     List<PsiClass> generatedPsiClasses = parseAndGenerateManager
         .getGeneratedPsiClasses(psiClass, GlobalSearchScope.allScope(psiClass.getProject()));
 
-    return from(generatedPsiClasses).transform(PsiClassToName.INSTANCE).toImmutableSet();
+    return from(generatedPsiClasses).transform(PsiClassToName.INSTANCE).toSet();
   }
 
   private static enum PsiClassToName implements Function<PsiClass, String> {
