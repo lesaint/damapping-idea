@@ -27,6 +27,7 @@ import fr.javatronic.damapping.processor.model.DAParameter;
 import fr.javatronic.damapping.processor.model.DASourceClass;
 import fr.javatronic.damapping.processor.model.DAType;
 import fr.javatronic.damapping.processor.model.factory.DANameFactory;
+import fr.javatronic.damapping.processor.model.function.ToGuavaFunctionOrMapperMethod;
 import fr.javatronic.damapping.processor.model.impl.DAAnnotationImpl;
 import fr.javatronic.damapping.processor.model.impl.DAEnumValueImpl;
 import fr.javatronic.damapping.processor.model.impl.DAInterfaceImpl;
@@ -97,11 +98,12 @@ public class PsiParsingServiceImpl implements PsiParsingService {
       PsiImportList psiImportList = extractPsiImportList(psiClass);
       DAName packageName = daNameExtractor.extractPackageName(psiClass);
       PsiContext psiContext = new PsiContext(psiImportList, packageName);
+      List<DAInterface> daInterfaces = extractInterfaces(psiClass, psiContext);
       return builder
           .withAnnotations(extractAnnotations(psiClass.getModifierList(), psiContext))
           .withModifiers(daModifierExtractor.extractModifiers(psiClass))
-          .withInterfaces(extractInterfaces(psiClass, psiContext))
-          .withMethods(extractMethods(psiClass, psiContext))
+          .withInterfaces(daInterfaces)
+          .withMethods(extractMethods(psiClass, psiContext, daInterfaces))
           .build();
     }
     catch (Throwable r) {
@@ -174,33 +176,15 @@ public class PsiParsingServiceImpl implements PsiParsingService {
         .orNull();
   }
 
-  private List<DAMethod> extractMethods(PsiClass psiClass, final PsiContext psiContext) {
+  private List<DAMethod> extractMethods(PsiClass psiClass, final PsiContext psiContext, final List<DAInterface> daInterfaces) {
     List<DAMethod> daMethods = from(Arrays.asList(psiClass.getChildren()))
         .filter(PsiMethod.class)
-        .transform(new Function<PsiMethod, DAMethod>() {
-          @Nullable
-          @Override
-          public DAMethod apply(@Nullable PsiMethod psiMethod) {
-            if (psiMethod == null) {
-              return null;
-            }
-            return daMethodBuilder(psiMethod)
-                .withName(DANameFactory.from(psiMethod.getName()))
-                .withAnnotations(extractAnnotations(psiMethod.getModifierList(), psiContext))
-                .withModifiers(daModifierExtractor.extractModifiers(psiMethod))
-                .withParameters(extractParameters(psiMethod, psiContext))
-                .withReturnType(daTypeExtractor.forMethod(psiMethod, psiContext))
-                .build();
-          }
+        // transform PsiMethod to DAMethod
+        .transform(new PsiMethodToDAMethod(psiContext))
+        .transform(new DAMethodToGuavaFunctionOrMapperDAMethod(daInterfaces))
+        .toList();
 
-          private DAMethodImpl.Builder daMethodBuilder(PsiMethod psiMethod) {
-            if (psiMethod.isConstructor()) {
-              return DAMethodImpl.constructorBuilder();
-            }
-            return DAMethodImpl.methodBuilder();
-          }
-        }
-        ).toList();
+    // if No default constructor has been defined explicutly, we add one
     if (!Iterables.any(daMethods, DAMethodConstructor.INSTANCE)) {
       return ImmutableList.copyOf(
           Iterables.concat(Collections.singletonList(instanceDefaultConstructor(psiClass)), daMethods)
@@ -259,6 +243,64 @@ public class PsiParsingServiceImpl implements PsiParsingService {
     @Override
     public boolean apply(@Nullable DAMethod daMethod) {
       return daMethod != null && daMethod.isConstructor();
+    }
+  }
+
+  /**
+   * This function tranforms a PsiMethod object into a DAMethod object (either a constructor or a method).
+   */
+  private class PsiMethodToDAMethod implements Function<PsiMethod, DAMethod> {
+    private final PsiContext psiContext;
+
+    public PsiMethodToDAMethod(PsiContext psiContext) {
+      this.psiContext = psiContext;
+    }
+
+    @Nullable
+    @Override
+    public DAMethod apply(@Nullable PsiMethod psiMethod) {
+      if (psiMethod == null) {
+        return null;
+      }
+      return daMethodBuilder(psiMethod)
+          .withName(DANameFactory.from(psiMethod.getName()))
+          .withAnnotations(extractAnnotations(psiMethod.getModifierList(), psiContext))
+          .withModifiers(daModifierExtractor.extractModifiers(psiMethod))
+          .withParameters(extractParameters(psiMethod, psiContext))
+          .withReturnType(daTypeExtractor.forMethod(psiMethod, psiContext))
+          .build();
+    }
+
+    private DAMethodImpl.Builder daMethodBuilder(PsiMethod psiMethod) {
+      if (psiMethod.isConstructor()) {
+        return DAMethodImpl.constructorBuilder();
+      }
+      return DAMethodImpl.methodBuilder();
+    }
+  }
+
+  /**
+   * This function effectively sets the guava function flag or the mapper flag on DAMethod objects by creating a new
+   * DAMethod object from them which have the right flag set.
+   */
+  private static class DAMethodToGuavaFunctionOrMapperDAMethod
+      extends ToGuavaFunctionOrMapperMethod<DAMethod>
+      implements Function<DAMethod, DAMethod> {
+
+    public DAMethodToGuavaFunctionOrMapperDAMethod(List<DAInterface> daInterfaces) {
+      super(daInterfaces);
+    }
+
+    @Nonnull
+    @Override
+    protected DAMethod toMapperMethod(@Nonnull DAMethod daMethod) {
+      return DAMethodImpl.makeMapperMethod(daMethod);
+    }
+
+    @Nonnull
+    @Override
+    protected DAMethod toGuavaFunction(@Nonnull DAMethod daMethod) {
+      return DAMethodImpl.makeGuavaFunctionApplyMethod(daMethod);
     }
   }
 }
