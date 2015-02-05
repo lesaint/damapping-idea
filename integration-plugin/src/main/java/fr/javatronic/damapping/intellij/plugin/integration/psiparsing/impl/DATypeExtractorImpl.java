@@ -21,11 +21,13 @@ import fr.javatronic.damapping.processor.model.DAName;
 import fr.javatronic.damapping.processor.model.DAType;
 import fr.javatronic.damapping.processor.model.DATypeKind;
 import fr.javatronic.damapping.processor.model.factory.DANameFactory;
+import fr.javatronic.damapping.processor.model.factory.DATypeFactory;
 import fr.javatronic.damapping.processor.model.impl.DATypeImpl;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.base.Function;
@@ -40,6 +42,7 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiTypeElement;
 
 import static com.google.common.collect.FluentIterable.from;
+import static fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiTypeElementUtil.isArray;
 
 /**
  * DATypeExtractorImpl -
@@ -94,10 +97,27 @@ public class DATypeExtractorImpl implements DATypeExtractor {
   }
 
   private DAType extractDAType(@Nonnull PsiTypeElement typeElement, PsiContext psiContext) {
-    return DATypeImpl.typeBuilder(extractDATypeKind(typeElement), daNameExtractor.simpleName(typeElement))
-        .withQualifiedName(daNameExtractor.qualifiedName(typeElement, psiContext))
-        .withTypeArgs(extractTypeArgs(typeElement, psiContext))
-        .withExtendsBound(extractExtendsBound(typeElement, psiContext))
+    if (PsiTypeElementUtil.isVoid(typeElement)) {
+      return DATypeFactory.voidDaType();
+    }
+    PsiTypeElement realTypeElement;
+    DATypeImpl.Builder builder;
+    if (isArray(typeElement)) {
+      realTypeElement = from(Arrays.asList(typeElement.getChildren()))
+          .filter(PsiTypeElement.class)
+          .first()
+          .get();
+      builder = DATypeImpl.arrayBuilder(extractDATypeKind(realTypeElement), daNameExtractor.simpleName(realTypeElement));
+    }
+    else {
+      realTypeElement = typeElement;
+      builder = DATypeImpl.typeBuilder(extractDATypeKind(typeElement), daNameExtractor.simpleName(realTypeElement));
+    }
+
+    return builder
+        .withQualifiedName(daNameExtractor.qualifiedName(realTypeElement, psiContext))
+        .withTypeArgs(extractTypeArgs(realTypeElement, psiContext))
+        .withExtendsBound(extractExtendsBound(realTypeElement, psiContext))
         .build();
   }
 
@@ -168,6 +188,9 @@ public class DATypeExtractorImpl implements DATypeExtractor {
   }
 
   private DATypeKind extractDATypeKind(PsiTypeElement psiTypeElement) {
+    if (PsiTypeElementUtil.isPrimitive(psiTypeElement)) {
+      return DATypeKind.valueOf(psiTypeElement.getText().toUpperCase(Locale.ENGLISH));
+    }
     if (PsiTypeElementUtil.isWildcard(psiTypeElement)) {
       return DATypeKind.WILDCARD;
     }
@@ -191,7 +214,7 @@ public class DATypeExtractorImpl implements DATypeExtractor {
 
   @Override
   @Nullable
-  public DAType forMethod(PsiMethod psiMethod, PsiContext psiContext) {
+  public DAType forReturnType(PsiMethod psiMethod, PsiContext psiContext) {
     if (psiMethod.isConstructor()) {
       return null;
     }

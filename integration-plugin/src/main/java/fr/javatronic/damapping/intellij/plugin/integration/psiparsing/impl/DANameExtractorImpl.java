@@ -78,20 +78,36 @@ public class DANameExtractorImpl implements DANameExtractor {
   @Nonnull
   @Override
   public DAName simpleName(PsiTypeElement psiTypeElement) {
-    Optional<PsiIdentifier> psiIdentifier = PsiTypeElementUtil.getPsiIdentifier(psiTypeElement);
-    if (psiIdentifier.isPresent()) {
-      // TODO handle case or an array
-      return DANameFactory.simpleFromQualified(psiIdentifier.get().getText());
-    }
     if (PsiTypeElementUtil.isWildcard(psiTypeElement)) {
       return DANameFactory.wildcard();
     }
+    if (PsiTypeElementUtil.isArray(psiTypeElement)) {
+      return arraySimpleName(psiTypeElement);
+    }
+    Optional<PsiIdentifier> psiIdentifier = PsiTypeElementUtil.getPsiIdentifier(psiTypeElement);
+    if (psiIdentifier.isPresent()) {
+      return DANameFactory.simpleFromQualified(psiIdentifier.get().getText());
+    }
     return DANameFactory.from(psiTypeElement.getText());
-//    PsiJavaCodeReferenceElement innermostComponentReferenceElement = psiTypeElement.getInnermostComponentReferenceElement();
-//    if (innermostComponentReferenceElement == null) { // psiTypeElement is a primitive type
-//      return DANameFactory.from(psiTypeElement.getText());
-//    }
+  }
 
+  /**
+   * Based on the implementation of method PsiTypeElementUtil.isArray, we know that PsiTypeElement of an array have either
+   * three or four children and the inner type of the array is repectively the type of the first or second child (which is
+   * a PsiTypeElement).
+   *
+   * Note: actually, we are not sure for the case when children array has 4 elements, we had no opportunity to encounter
+   * such case yet.
+   */
+  @Nonnull
+  private DAName arraySimpleName(@Nonnull PsiTypeElement psiTypeElement) {
+    if (psiTypeElement.getChildren().length == 3) {
+      return simpleName((PsiTypeElement) psiTypeElement.getChildren()[0]);
+    }
+    if (psiTypeElement.getChildren().length == 4) {
+      return simpleName((PsiTypeElement) psiTypeElement.getChildren()[1]);
+    }
+    throw new IllegalArgumentException("PsiTypeElement is indicated as being an array by method PsiTypeElementUtil.isArray but length of its children array is neither 3 nor 4");
   }
 
   @Nullable
@@ -178,6 +194,9 @@ public class DANameExtractorImpl implements DANameExtractor {
     }
     if (PsiTypeElementUtil.isVoid(psiTypeElement)) {
       return DANameFactory.voidDAName();
+    }
+    if (PsiTypeElementUtil.isPrimitive(psiTypeElement)) {
+      return simpleName(psiTypeElement);
     }
 
     Optional<PsiIdentifier> psiIdentifier = PsiTypeElementUtil.getPsiIdentifier(psiTypeElement);

@@ -100,12 +100,13 @@ public class PsiParsingServiceImpl implements PsiParsingService {
       DAName packageName = daNameExtractor.extractPackageName(psiClass);
       PsiContext psiContext = new PsiContext(psiImportList, packageName);
       List<DAInterface> daInterfaces = extractInterfaces(psiClass, psiContext);
-      return builder
+      DASourceClass res = builder
           .withAnnotations(extractAnnotations(psiClass.getModifierList(), psiContext))
           .withModifiers(daModifierExtractor.extractModifiers(psiClass))
           .withInterfaces(daInterfaces)
           .withMethods(extractMethods(psiClass, psiContext, daInterfaces))
           .build();
+      return res;
     }
     catch (Throwable r) {
       LOGGER.error("An exception occured while parsing Psi tree", r);
@@ -260,7 +261,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
           .withAnnotations(extractAnnotations(psiMethod.getModifierList(), psiContext))
           .withModifiers(daModifierExtractor.extractModifiers(psiMethod))
           .withParameters(extractParameters(psiMethod, psiContext))
-          .withReturnType(daTypeExtractor.forMethod(psiMethod, psiContext))
+          .withReturnType(daTypeExtractor.forReturnType(psiMethod, psiContext))
           .build();
     }
 

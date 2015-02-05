@@ -25,6 +25,7 @@ import com.google.common.base.Predicates;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiTypeElement;
 
 import static com.google.common.collect.FluentIterable.from;
@@ -91,6 +92,10 @@ public final class PsiTypeElementUtil {
   private static boolean isArray(PsiElement[] children, int offset) {
     return "[".equals(children[offset + 1].getText())
         && "]".equals(children[offset + 2].getText());
+  }
+
+  public static boolean isPrimitive(PsiTypeElement psiTypeElement) {
+    return psiTypeElement.getType() instanceof PsiPrimitiveType;
   }
 
   private static enum PsiElementToText implements Function<PsiElement, String> {

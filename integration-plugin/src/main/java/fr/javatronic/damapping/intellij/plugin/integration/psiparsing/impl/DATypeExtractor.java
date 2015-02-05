@@ -41,7 +41,7 @@ public interface DATypeExtractor {
   DAType forParameter(PsiParameter psiParameter, PsiContext psiContext);
 
   @Nullable
-  DAType forMethod(PsiMethod psiMethod, PsiContext psiContext);
+  DAType forReturnType(PsiMethod psiMethod, PsiContext psiContext);
 
   @Nonnull
   DAType forInterface(PsiJavaCodeReferenceElement referenceElement, PsiContext psiContext);
