@@ -16,18 +16,17 @@
 package fr.javatronic.damapping.intellij.plugin.integration.provider;
 
 import fr.javatronic.damapping.annotation.Mapper;
+import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiImportListUtil;
 
-import java.util.Arrays;
-import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiImportList;
-import com.intellij.psi.PsiImportStatement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
+
+import static com.google.common.collect.FluentIterable.from;
+import static java.util.Arrays.asList;
 
 /**
  * Common -
@@ -43,37 +42,33 @@ public class Common {
       return false;
     }
 
-    // look for annotation @Mapper or @com.google.common.base.Function on class
-    if (!FluentIterable.from(Arrays.asList(psiClass.getModifierList().getAnnotations()))
-                       .filter(new Predicate<PsiAnnotation>() {
-                         @Override
-                         public boolean apply(@javax.annotation.Nullable PsiAnnotation psiAnnotation) {
-                           return psiAnnotation != null
-                               && (MAPPER_ANNOTATION_TEXT.equals(psiAnnotation.getText())
-                               || MAPPER_QUALIFIED_ANNOTATION_TEXT.equals(psiAnnotation.getText()));
-                         }
-                       }
-                       ).first().isPresent()) {
-      return false;
+    // look for annotation @Mapper on class
+    boolean hasMapperAnnotation = !from(asList(psiClass.getModifierList().getAnnotations()))
+        .filter(new MapperPsiAnnotation(psiClass))
+        .isEmpty();
+    return hasMapperAnnotation;
+  }
+
+  private static class MapperPsiAnnotation implements Predicate<PsiAnnotation> {
+    private final boolean hasMapperAnnotationImport;
+
+    public MapperPsiAnnotation(PsiClass psiClass) {
+      Optional<PsiImportList> importList = PsiImportListUtil.extractPsiImportList(psiClass);
+      this.hasMapperAnnotationImport = importList.isPresent() && hasMapperAnnotation(importList.get());
     }
 
-    // look for the import of Guava's Function
-    for (PsiElement fileElement : psiClass.getParent().getChildren()) {
-      if (fileElement instanceof PsiImportList) {
-        for (PsiElement importListElement : fileElement.getChildren()) {
-          if (importListElement instanceof PsiImportStatement) {
-            for (PsiElement element : importListElement.getChildren()) {
-              if (element instanceof PsiJavaCodeReferenceElement) {
-                if (Function.class.getName().equals(element.getText())) {
-                  return true;
-                }
-              }
-            }
-          }
+    private static boolean hasMapperAnnotation(PsiImportList psiImportList) {
+      return psiImportList.findSingleClassImportStatement(Mapper.class.getName()) != null
+          || psiImportList.findOnDemandImportStatement(Mapper.class.getPackage().getName()) != null;
+    }
 
-        }
+    @Override
+    public boolean apply(@javax.annotation.Nullable PsiAnnotation psiAnnotation) {
+      if (psiAnnotation == null) {
+        return false;
       }
+      return (MAPPER_ANNOTATION_TEXT.equals(psiAnnotation.getText()) && hasMapperAnnotationImport)
+          || MAPPER_QUALIFIED_ANNOTATION_TEXT.equals(psiAnnotation.getText());
     }
-    return false;
   }
 }

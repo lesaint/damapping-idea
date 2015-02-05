@@ -15,7 +15,6 @@
  */
 package fr.javatronic.damapping.intellij.plugin.integration.component.project;
 
-import fr.javatronic.damapping.intellij.plugin.integration.provider.Common;
 import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiParsingService;
 import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.impl.PsiParsingServiceImpl;
 import fr.javatronic.damapping.processor.model.DASourceClass;
@@ -55,6 +54,8 @@ import com.intellij.psi.util.ParameterizedCachedValue;
 import com.intellij.psi.util.ParameterizedCachedValueProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static fr.javatronic.damapping.intellij.plugin.integration.provider.Common.hasMapperAnnotation;
 
 /**
  * DAMappingElementFinder - Project component exposing a method to generate the PSiClass of all classes generated from
@@ -127,7 +128,7 @@ public class ParseAndGenerateManager implements ProjectComponent {
 
   @NotNull
   private Optional<GenerationContext> computeGenerationContext(@NotNull PsiClass psiClass) {
-    if (!Common.hasMapperAnnotation(psiClass)) {
+    if (!hasMapperAnnotation(psiClass)) {
       return Optional.absent();
     }
 

@@ -15,14 +15,14 @@
  */
 package fr.javatronic.damapping.intellij.plugin.integration.index;
 
-import fr.javatronic.damapping.intellij.plugin.integration.provider.Common;
-
 import java.util.Collections;
 import java.util.Set;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.util.indexing.ID;
 import org.jetbrains.annotations.NotNull;
+
+import static fr.javatronic.damapping.intellij.plugin.integration.provider.Common.hasMapperAnnotation;
 
 /**
  * AnnotedClassQualifiedNameIndex - Index VirtualFile of classes annoted with @Mapper by their qualified name.
@@ -41,7 +41,7 @@ public class AnnotedClassQualifiedNameIndex extends AbstractPsiClassIndex {
 
   @Override
   protected boolean filter(PsiClass psiClass) {
-    return Common.hasMapperAnnotation(psiClass);
+    return hasMapperAnnotation(psiClass);
   }
 
   @Override

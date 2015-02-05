@@ -16,6 +16,7 @@
 package fr.javatronic.damapping.intellij.plugin.integration.psiparsing.impl;
 
 import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiContext;
+import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiImportListUtil;
 import fr.javatronic.damapping.intellij.plugin.integration.psiparsing.PsiParsingService;
 import fr.javatronic.damapping.processor.model.DAAnnotation;
 import fr.javatronic.damapping.processor.model.DAEnumValue;
@@ -95,7 +96,7 @@ public class PsiParsingServiceImpl implements PsiParsingService {
     try {
       DASourceClassImpl.Builder builder = daSourceBuilder(psiClass, daTypeExtractor.forClassOrEnum(psiClass));
 
-      PsiImportList psiImportList = extractPsiImportList(psiClass);
+      PsiImportList psiImportList = PsiImportListUtil.extractPsiImportList(psiClass).orNull();
       DAName packageName = daNameExtractor.extractPackageName(psiClass);
       PsiContext psiContext = new PsiContext(psiImportList, packageName);
       List<DAInterface> daInterfaces = extractInterfaces(psiClass, psiContext);
@@ -166,14 +167,6 @@ public class PsiParsingServiceImpl implements PsiParsingService {
           .toList();
     }
     return Collections.emptyList();
-  }
-
-  @Nullable
-  private PsiImportList extractPsiImportList(PsiClass psiClass) {
-    return from(Arrays.asList(psiClass.getParent().getChildren()))
-        .filter(PsiImportList.class)
-        .first()
-        .orNull();
   }
 
   private List<DAMethod> extractMethods(PsiClass psiClass, final PsiContext psiContext, final List<DAInterface> daInterfaces) {

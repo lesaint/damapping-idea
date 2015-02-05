@@ -16,7 +16,6 @@
 package fr.javatronic.damapping.intellij.plugin.integration.index;
 
 import fr.javatronic.damapping.intellij.plugin.integration.component.project.ParseAndGenerateManager;
-import fr.javatronic.damapping.intellij.plugin.integration.provider.Common;
 
 import java.util.List;
 import java.util.Set;
@@ -29,6 +28,7 @@ import com.intellij.util.indexing.ID;
 import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.collect.FluentIterable.from;
+import static fr.javatronic.damapping.intellij.plugin.integration.provider.Common.hasMapperAnnotation;
 
 /**
  * GeneratedClassSimpleNameIndex - Index VirtualFile of classes annoted with @Mapper by the simple name of the
@@ -53,7 +53,7 @@ public class GeneratedClassSimpleNameIndex extends AbstractPsiClassIndex {
 
   @Override
   protected boolean filter(PsiClass psiClass) {
-    return Common.hasMapperAnnotation(psiClass);
+    return hasMapperAnnotation(psiClass);
   }
 
   @Override
