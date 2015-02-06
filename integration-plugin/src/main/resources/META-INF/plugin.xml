@@ -20,10 +20,12 @@
 
   <change-notes><![CDATA[
       <p>
-        <strong>0.1.0 - [date]</strong>: first public beta version for IDEA 14<br/>
+        <strong>14-0.1.0 - BETA - [date]</strong>: first public version for IDEA 14<br/>
         <ul>
           <li>supports DAMapping framework 0.6.0</li>
           <li>provides fluent integration of generated types in the editor (no need to build and actually generate source files in target directory)</li>
+          <li>has a known "incompatible type" error displayed in editor</li>
+          <li>does not yet implement Goto class</li>
         </ul>
       </p>
       ]]>
