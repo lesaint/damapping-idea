@@ -72,7 +72,7 @@
         implementation="fr.javatronic.damapping.intellij.plugin.integration.provider.DAMappingInspectionProvider" />
     <java.shortNamesCache
         implementation="fr.javatronic.damapping.intellij.plugin.integration.cache.DAMappingPsiShortNamesCache" />
-    <gotoClassContributor
-        implementation="fr.javatronic.damapping.intellij.plugin.integration.contributor.GeneratedClassGoToContributor" />
+    <!--<gotoClassContributor-->
+        <!--implementation="fr.javatronic.damapping.intellij.plugin.integration.contributor.GeneratedClassGoToContributor" />-->
   </extensions>
 </idea-plugin>
