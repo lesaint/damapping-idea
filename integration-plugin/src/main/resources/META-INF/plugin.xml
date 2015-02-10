@@ -2,7 +2,7 @@
   <id>fr.javatronic.damapping.intellij.plugin.integration</id>
   <name>DAMapping stack integration</name>
   <!--value before the hyphen is the IDEA version, value after the hyphen is the plugin version for this specific IDEA version-->
-  <version>14-0.1.0</version>
+  <version>14-0.1.1</version>
   <!--<vendor email="support@yourcompany.com" url="http://damapping.javatronic.fr">DAMapping</vendor>-->
   <vendor url="https://github.com/lesaint/damapping-idea" />
 
