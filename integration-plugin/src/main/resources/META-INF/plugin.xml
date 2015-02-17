@@ -20,6 +20,12 @@
 
   <change-notes><![CDATA[
       <p>
+        <strong>14-0.1.1 - BETA - 2015-02-17</strong>: bug fix<br/>
+        <ul>
+          <li>do not load not yet developer ClassGoToContributor</li>
+        </ul>
+      </p>
+      <p>
         <strong>14-0.1.0 - BETA - 2015-02-09</strong>: first public version for IDEA 14<br/>
         <ul>
           <li>supports DAMapping framework 0.6.0</li>
